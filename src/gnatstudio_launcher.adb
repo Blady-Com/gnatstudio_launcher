@@ -58,7 +58,7 @@ begin
      ("PATH",
       Value ("PATH") & Append_If_Exists ("GS_GNAT_PATH") &
       Append_If_Exists ("GS_GPR_PATH"));
-   Set ("DYLD_LIBRARY_PATH", Res_Loc & "/lib");
+   Set ("DYLD_LIBRARY_PATH", Res_Loc & "/lib:" & Res_Loc & "/lib/gdk-pixbuf-2.0/2.10.0/loaders");
 
    for Ind in AL'Range loop
       AL (Ind) := new String'(Argument (Ind));
