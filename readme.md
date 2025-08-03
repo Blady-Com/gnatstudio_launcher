@@ -13,14 +13,13 @@ This program launches [GNAT Studio](https://github.com/AdaCore/gnatstudio) execu
 * for GNAT Studio
     * GPS_ROOT
 * for libraries
-    * DYLD_LIBRARY_PATH
+    * DYLD_FALLBACK_LIBRARY_PATH
 * for external excutables
     * PATH from Info.plist with
         * GS_GNAT_PATH
         * GS_GPR_PATH
 
 Extra environment variables may be set from configuration file `gnatstudio_launcher.rc` located
- in GNAT Studio preferences folder, typically PATH and GPR_PROJECT_PATH.
+ in GNAT Studio preferences folder, typically PATH, C_INCLUDE_PATH, LIBRARY_PATH and GPR_PROJECT_PATH.
 
-Pascal Pignard, June 2024.
-
+Pascal Pignard, July 2025.

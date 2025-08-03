@@ -3,6 +3,8 @@ project GNATStudio_Launcher is
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Main use ("gnatstudio_launcher.adb");
+   for Create_Missing_Dirs use "True";
+
    package Compiler is
       --  Common options used for all build modes
       Common_Options := ("-gnatW8", "-gnatU", "-gnatf");
@@ -10,6 +12,11 @@ project GNATStudio_Launcher is
                                                  "-fstack-check", "-g", "-gnato", "-gnatE", "-gnata", "-gnateA",
                                                  "-gnateE", "-gnateF", "-gnateV", "-Wall");
    end Compiler;
+
+   package Linker is
+      for Default_Switches ("Ada") use External_As_List ("LDFLAGS", " ");
+   end Linker;
+
    package Pretty_Printer is
       for Switches ("ada") use ("-M120", "-W8", "--comments-unchanged");
    end Pretty_Printer;

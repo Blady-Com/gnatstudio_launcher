@@ -35,32 +35,46 @@ procedure GNATStudio_Launcher is
    procedure Parse_Var_RC is
       GSLRC : constant String := "/.gnatstudio/gnatstudio_launcher.rc";
       Var_RC_File : File_Type;
+      Found : Boolean := False;
    begin
-      if Exists ("GNATSTUDIO_HOME") and then Ada.Directories.Exists (Value ("GNATSTUDIO_HOME") & GSLRC) then
-         Put_Line ("Found: " & Value ("GNATSTUDIO_HOME") & GSLRC);
-         Open (Var_RC_File, In_File, Value ("GNATSTUDIO_HOME") & GSLRC);
-      elsif Ada.Directories.Exists (Value ("HOME") & GSLRC) then
-         Put_Line ("Found: " & Value ("HOME") & GSLRC);
-         Open (Var_RC_File, In_File, Value ("HOME") & GSLRC);
+      if Exists ("GNATSTUDIO_HOME") then
+         if Ada.Directories.Exists (Value ("GNATSTUDIO_HOME") & GSLRC) then
+            Put_Line ("Found: " & Value ("GNATSTUDIO_HOME") & GSLRC);
+            Open (Var_RC_File, In_File, Value ("GNATSTUDIO_HOME") & GSLRC);
+            Found := True;
+         end if;
+      elsif Exists ("GPS_HOME") then
+         if Ada.Directories.Exists (Value ("GPS_HOME") & GSLRC) then
+            Put_Line ("Found: " & Value ("GPS_HOME") & GSLRC);
+            Open (Var_RC_File, In_File, Value ("GPS_HOME") & GSLRC);
+            Found := True;
+         end if;
+      elsif Exists ("HOME") then
+         if Ada.Directories.Exists (Value ("HOME") & GSLRC) then
+            Put_Line ("Found: " & Value ("HOME") & GSLRC);
+            Open (Var_RC_File, In_File, Value ("HOME") & GSLRC);
+            Found := True;
+         end if;
+      end if;
+      if Found then
+         while not End_Of_File (Var_RC_File) loop
+            declare
+               Line : constant String := Get_Line (Var_RC_File);
+               use Ada.Strings.Fixed;
+            begin
+               if Line'Length /= 0 and then Line (1) /= '#' then
+                  if Index (Line, "=") /= 0 then
+                     Var_RC_map.Insert (Line (1 .. Index (Line, "=") - 1), Line (Index (Line, "=") + 1 .. Line'Last));
+                     Put_Line
+                       ("Found: " & Line (1 .. Index (Line, "=") - 1) & '=' & Line (Index (Line, "=") + 1 .. Line'Last));
+                  end if;
+               end if;
+            end;
+         end loop;
+         Close (Var_RC_File);
       else
          Put_Line ("No gnatstudio_launcher.rc file found.");
-         return;
       end if;
-      while not End_Of_File (Var_RC_File) loop
-         declare
-            Line : constant String := Get_Line (Var_RC_File);
-            use Ada.Strings.Fixed;
-         begin
-            if Line'Length /= 0 and then Line (1) /= '#' then
-               if Index (Line, "=") /= 0 then
-                  Var_RC_map.Insert (Line (1 .. Index (Line, "=") - 1), Line (Index (Line, "=") + 1 .. Line'Last));
-                  Put_Line
-                    ("Found: " & Line (1 .. Index (Line, "=") - 1) & '=' & Line (Index (Line, "=") + 1 .. Line'Last));
-               end if;
-            end if;
-         end;
-      end loop;
-      Close (Var_RC_File);
    end Parse_Var_RC;
 
    procedure Set_Var_RC is
@@ -103,7 +117,7 @@ begin
       Put_Line ("Append PATH with: " & Append_If_Exists ("GS_GNAT_PATH") & Append_If_Exists ("GS_GPR_PATH"));
       Set ("PATH", Value ("PATH") & Append_If_Exists ("GS_GNAT_PATH") & Append_If_Exists ("GS_GPR_PATH"));
    end if;
-   Set ("DYLD_LIBRARY_PATH", Res_Loc & "/lib:" & Res_Loc & "/lib/gdk-pixbuf-2.0/2.10.0/loaders");
+   Set ("DYLD_FALLBACK_LIBRARY_PATH", "/usr/lib:" & Res_Loc & "/lib:" & Res_Loc & "/lib/gdk-pixbuf-2.0/2.10.0/loaders");
    Set_Var_RC;
 
    for Ind in AL'Range loop
