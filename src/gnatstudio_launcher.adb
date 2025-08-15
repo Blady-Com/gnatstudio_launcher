@@ -1,7 +1,7 @@
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.OS_Lib;               use GNAT.OS_Lib;
 with Ada.Environment_Variables; use Ada.Environment_Variables;
-with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Text_IO;               use Ada.Text_IO;
+with Ada.Command_Line;          use Ada.Command_Line;
 with Ada.Strings.Fixed;
 with Ada.Containers.Indefinite_Ordered_Maps;
 with Ada.Directories;
@@ -33,9 +33,9 @@ procedure GNATStudio_Launcher is
    end Save_And_Set;
 
    procedure Parse_Var_RC is
-      GSLRC : constant String := "/.gnatstudio/gnatstudio_launcher.rc";
+      GSLRC       : constant String := "/.gnatstudio/gnatstudio_launcher.rc";
       Var_RC_File : File_Type;
-      Found : Boolean := False;
+      Found       : Boolean         := False;
    begin
       if Exists ("GNATSTUDIO_HOME") then
          if Ada.Directories.Exists (Value ("GNATSTUDIO_HOME") & GSLRC) then
@@ -66,7 +66,8 @@ procedure GNATStudio_Launcher is
                   if Index (Line, "=") /= 0 then
                      Var_RC_map.Insert (Line (1 .. Index (Line, "=") - 1), Line (Index (Line, "=") + 1 .. Line'Last));
                      Put_Line
-                       ("Found: " & Line (1 .. Index (Line, "=") - 1) & '=' & Line (Index (Line, "=") + 1 .. Line'Last));
+                       ("Found: " & Line (1 .. Index (Line, "=") - 1) & '=' &
+                        Line (Index (Line, "=") + 1 .. Line'Last));
                   end if;
                end if;
             end;
@@ -91,12 +92,12 @@ procedure GNATStudio_Launcher is
       end loop;
    end Set_Var_RC;
 
-   AL : Argument_List (1 .. Argument_Count);
+   AL              : Argument_List (1 .. Argument_Count);
    Launcher_Ending : constant String := "_launcher";
-   App_Loc : constant String := "/MacOS";
-   Launcher_Loc : constant String := Command_Name;
-   Exe_Loc : constant String := Launcher_Loc (Launcher_Loc'First .. Launcher_Loc'Last - Launcher_Ending'Length);
-   Res_Loc : constant String :=
+   App_Loc         : constant String := "/MacOS";
+   Launcher_Loc    : constant String := Command_Name;
+   Exe_Loc         : constant String := Launcher_Loc (Launcher_Loc'First .. Launcher_Loc'Last - Launcher_Ending'Length);
+   Res_Loc         : constant String :=
      Exe_Loc (Exe_Loc'First .. Ada.Strings.Fixed.Index (Exe_Loc, App_Loc) - 1) & "/Resources";
 
 begin
