@@ -68,6 +68,11 @@ procedure GNATStudio_Launcher is
                      Put_Line
                        ("Found: " & Line (1 .. Index (Line, "=") - 1) & '=' &
                         Line (Index (Line, "=") + 1 .. Line'Last));
+                  elsif Index (Line, ".") /= 0 then
+                     Var_RC_map.Insert (Line, "");
+                     Put_Line ("Found: " & Line);
+                  else
+                     Put_Line ("Not taken ins account: " & Line);
                   end if;
                end if;
             end;
@@ -80,14 +85,55 @@ procedure GNATStudio_Launcher is
 
    procedure Set_Var_RC is
       use Var_RC;
+      use Ada.Strings.Fixed;
    begin
       for C in Var_RC_map.Iterate loop
-         if Exists (Key (C)) then
-            Put_Line ("Append " & Key (C) & " with: " & Element (C));
-            Set (Key (C), Value (Key (C)) & ':' & Element (C));
+         if Index (Key (C), ".") /= 0 then
+            declare
+               Name   : constant String := Key (C) (Key (C)'First .. Index (Key (C), ".") - 1);
+               Action : constant String := Key (C) (Index (Key (C), ".") + 1 .. Key (C)'Last);
+            begin
+               if Action = "set" then
+                  Set (Name, Element (C));
+                  Put_Line ("Set " & Name & " with: " & Element (C));
+               elsif Action = "unset" then
+                  Clear (Name);
+                  Put_Line ("Unset: " & Name);
+               elsif Action = "ifnotset" then
+                  if not Exists (Name) then
+                     Set (Name, Element (C));
+                     Put_Line ("Set " & Name & " with: " & Element (C));
+                  else
+                     Put_Line ("Already exists not changed: " & Name);
+                  end if;
+               elsif Action = "append" then
+                  if Exists (Name) then
+                     Put_Line ("Append " & Name & " with: " & Element (C));
+                     Set (Key (C), Value (Name) & ':' & Element (C));
+                  else
+                     Put_Line ("Create " & Name & " with: " & Element (C));
+                     Set (Name, Element (C));
+                  end if;
+               elsif Action = "prepend" then
+                  if Exists (Key (C)) then
+                     Put_Line ("Prepend " & Name & " with: " & Element (C));
+                     Set (Name, Element (C) & ':' & Value (Name));
+                  else
+                     Put_Line ("Create " & Name & " with: " & Element (C));
+                     Set (Name, Element (C));
+                  end if;
+               else
+                  Put_Line ("Action """ & Action & """ is not in set, append, prepend, unset, ifnotset.");
+               end if;
+            end;
          else
-            Put_Line ("Create " & Key (C) & " with: " & Element (C));
-            Set (Key (C), Element (C));
+            if Exists (Key (C)) then
+               Put_Line ("Append " & Key (C) & " with: " & Element (C));
+               Set (Key (C), Value (Key (C)) & ':' & Element (C));
+            else
+               Put_Line ("Create " & Key (C) & " with: " & Element (C));
+               Set (Key (C), Element (C));
+            end if;
          end if;
       end loop;
    end Set_Var_RC;
@@ -101,11 +147,18 @@ procedure GNATStudio_Launcher is
      Exe_Loc (Exe_Loc'First .. Ada.Strings.Fixed.Index (Exe_Loc, App_Loc) - 1) & "/Resources";
 
 begin
-   Put_Line ("Launcher: " & Launcher_Loc);
-   Put_Line ("Exe     : " & Exe_Loc);
-   Put_Line ("Res     : " & Res_Loc);
-   Put_Line ("GS_GNAT_PATH: " & Append_If_Exists ("GS_GNAT_PATH"));
-   Put_Line ("GS_GPR_PATH : " & Append_If_Exists ("GS_GPR_PATH"));
+   Put_Line ("Launcher      : " & Launcher_Loc);
+   Put_Line ("Exe           : " & Exe_Loc);
+   Put_Line ("Res           : " & Res_Loc);
+   Put_Line ("GS_GNAT_PATH  : " & Append_If_Exists ("GS_GNAT_PATH"));
+   Put_Line ("GS_GPR_PATH   : " & Append_If_Exists ("GS_GPR_PATH"));
+
+   Put_Line ("Current folder: " & Ada.Directories.Current_Directory);
+   if Ada.Directories.Current_Directory = "/" and Exists ("HOME") then
+      Put_Line ("Current folder is not writable set to $HOME.");
+      Ada.Directories.Set_Directory (Value ("HOME"));
+   end if;
+
    Parse_Var_RC;
 
    Set ("GPS_ROOT", Res_Loc);
